@@ -125,12 +125,29 @@ type Provider interface {
 ## Test
 
 ```bash
-go test ./...
+make test    # vet + semua test
+make cover   # test + race detector + coverage (total % di output akhir)
+make html    # laporan coverage interaktif di browser
 ```
 
-Test kontrak memverifikasi 12 adapter: callback ber-signature valid ternormalisasi
-benar (`Paid`/`OrderID`/`Amount`), 16 kasus fail-closed (secret/header kosong =
-ditolak), event non-pembayaran → `Ignore`, dan mode simulasi.
+Lapisan test:
+
+- **Kontrak `ParseCallback`** (`pay_test.go`): callback ber-signature valid
+  ternormalisasi benar (`Paid`/`OrderID`/`Amount`), 16 kasus fail-closed
+  (secret/header kosong = ditolak), event non-pembayaran → `Ignore`, mode simulasi.
+- **Unit `CreateCharge`** (`charge_test.go`): request diverifikasi per gateway
+  (path, auth, header, signature request) lewat gateway tiruan `httptest` +
+  override `base_url`; response ternormalisasi ke `Result`; jalur penolakan gateway.
+- **Unit registry/helper** (`helpers_test.go`): registry, `IsSimulated`, `baseURL`,
+  `failClosed`, vektor HMAC/hash standar, util kecil, `postJSON`, dan kontrak
+  minimum semua provider (Name stabil, Label terisi, Fields valid).
+- **E2E** (`e2e_test.go`): siklus penuh per gateway — `CreateCharge` ke gateway
+  tiruan, webhook ber-signature dikirim ke server webhook konsumen, konsumen
+  memverifikasi via `ParseCallback` dan menandai lunas; plus `callback_path`
+  kustom SingaPay dan penolakan webhook ber-signature palsu.
+
+CI (GitHub Actions, `.github/workflows/ci.yml`) menjalankan `go vet` +
+`go test -race -coverprofile` di setiap push/PR dan melaporkan total coverage.
 
 ## Lisensi
 

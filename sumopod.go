@@ -72,6 +72,9 @@ func (Sumopod) CreateCharge(c Charge, cfg Config) (Result, error) {
 	if out.Data.PaymentLinkURL != "" {
 		out.PaymentLinkURL = out.Data.PaymentLinkURL
 	}
+	if out.Data.PaymentCode != "" {
+		out.PaymentCode = out.Data.PaymentCode
+	}
 	if out.PaymentLinkURL == "" {
 		return Result{}, fmt.Errorf("sumopod tidak mengembalikan payment_link_url: %s", truncate(b, 200))
 	}
